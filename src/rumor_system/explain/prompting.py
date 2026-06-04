@@ -23,7 +23,11 @@ def build_explanation_prompt(
         f"Prediction confidence: {prediction.confidence:.3f}\n"
         "Retrieved evidence:\n"
         f"{joined_evidence}\n"
-        "Write a concise explanation that only uses the tweet wording and the retrieved evidence. "
-        "Do not invent facts outside the input."
+        "Write one concise paragraph in Chinese in three parts: "
+        "(1) what role the tweet seems to play in the event discussion, "
+        "(2) which concrete words or phrases in the tweet matter most, and "
+        "(3) how the retrieved evidence supports or complicates the final label. "
+        "Only use the tweet wording and the retrieved evidence. "
+        "Do not invent facts outside the input. "
+        "Remember that rumor does not simply mean false, and non-rumor does not simply mean true."
     )
-
