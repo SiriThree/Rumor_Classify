@@ -1,0 +1,80 @@
+project:
+  name: explainable-rumor-detection
+  seed: 42
+
+data:
+  train_path: rumer2026/train.csv
+  val_path: rumer2026/val.csv
+  text_column: text
+  label_column: label
+  id_column: id
+  event_column: event
+
+model:
+  classifier_type: retrieval_vote
+  classifier_name: vinai/bertweet-base
+  fallback_classifier_type: retrieval_vote
+  max_length: 128
+  num_labels: 2
+  decision_threshold: 0.5
+  checkpoint_dir: outputs/checkpoints/unused
+  batch_size: 16
+  eval_batch_size: 32
+  learning_rate: 2.0e-5
+  weight_decay: 0.01
+  num_epochs: 3
+  warmup_ratio: 0.1
+  gradient_clip_norm: 1.0
+  early_stopping_patience: 2
+  use_class_weights: true
+  device: auto
+  force_retrain: false
+
+retrieval:
+  enabled: true
+  mode: hybrid
+  top_k: 5
+  dense_enabled: true
+  dense_model_name: sentence-transformers/all-MiniLM-L6-v2
+  dense_batch_size: 64
+  dense_candidate_k: 20
+  fusion_strategy: rrf
+  lexical_weight: 0.5
+  dense_weight: 0.5
+  rrf_k: 60
+  near_duplicate_threshold: 0.92
+  vote_override_threshold: 0.85
+  vote_margin_threshold: 0.60
+  weighted_vote_enabled: true
+  confidence_gap_override: 0.00
+  strong_agreement_override_enabled: true
+  strong_agreement_vote_threshold: 0.60
+  strong_agreement_top_score_threshold: 0.0160
+  strong_agreement_raw_ratio_threshold: 0.60
+  strong_agreement_max_base_confidence: 0.995
+  evidence_conflict_recheck_enabled: true
+  evidence_conflict_max_base_confidence: 0.90
+  evidence_conflict_vote_threshold: 0.55
+  evidence_conflict_raw_ratio_threshold: 0.60
+  evidence_conflict_top_score_threshold: 0.0140
+  evidence_conflict_top_dense_threshold: 0.75
+  official_update_resolver_enabled: true
+  official_update_max_confidence: 0.95
+  normalize_urls: true
+  normalize_users: true
+  normalize_hashtags: false
+
+explanation:
+  enabled: true
+  mode: offline_template
+  model_name: ""
+  max_evidence_items: 3
+  include_confidence: true
+
+output:
+  train_summary_path: outputs/train_summary.json
+  val_predictions_path: outputs/val_predictions.csv
+  val_metrics_path: outputs/val_metrics.json
+
+runtime:
+  save_prediction_evidence: true
