@@ -167,9 +167,4 @@ python scripts/evaluate_ensemble.py --config-a configs/bertweet.yaml --config-b 
 - 基于剩余错例继续做 hard-case 建模
 - 接入学校提供的大模型接口，生成更强的 explanation
 
-## 团队分工建议
 
-- 成员 A：数据处理、评测脚本、实验统计
-- 成员 B：Transformer 训练与调参
-- 成员 C：RAG 检索、解释模块、接口接入
-- 成员 D：README、报告、实验整理与复现说明
