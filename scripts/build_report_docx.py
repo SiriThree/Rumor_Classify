@@ -11,7 +11,6 @@ from docx.shared import Inches, Pt, RGBColor
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT_DOCX = ROOT / "report.docx"
-REPORT_PDF = ROOT / "report.pdf"
 ASSET_DIR = ROOT / "outputs" / "report_assets"
 
 
@@ -63,11 +62,11 @@ def add_bullet(doc: Document, text: str) -> None:
     p.paragraph_format.space_after = Pt(2)
 
 
-def set_cell_text(cell, text: str, bold: bool = False) -> None:
+def set_cell_text(cell, text: str, bold: bool = False, size: float = 10.5) -> None:
     cell.text = ""
     p = cell.paragraphs[0]
     run = p.add_run(text)
-    set_font(run, name="宋体", size=10.5, bold=bold)
+    set_font(run, name="宋体", size=size, bold=bold)
     p.paragraph_format.line_spacing = 1.15
     p.paragraph_format.space_after = Pt(0)
 
@@ -85,7 +84,7 @@ def add_result_table(doc: Document) -> None:
     table.autofit = False
     widths = [Inches(2.8), Inches(1.5), Inches(2.2)]
     headers = ["方案", "准确率", "说明"]
-    for idx, (cell, text, width) in enumerate(zip(table.rows[0].cells, headers, widths)):
+    for cell, text, width in zip(table.rows[0].cells, headers, widths):
         cell.width = width
         set_cell_text(cell, text, bold=True)
         shade_cell(cell, "D9E7F5")
@@ -102,6 +101,35 @@ def add_result_table(doc: Document) -> None:
         for i, value in enumerate(row):
             cells[i].width = widths[i]
             set_cell_text(cells[i], value)
+
+
+def add_example_table(doc: Document) -> None:
+    table = doc.add_table(rows=1, cols=3)
+    table.style = "Table Grid"
+    table.autofit = False
+    widths = [Inches(1.4), Inches(2.2), Inches(2.9)]
+    headers = ["示例类型", "输入文本片段", "中文判断依据示例"]
+    for cell, text, width in zip(table.rows[0].cells, headers, widths):
+        cell.width = width
+        set_cell_text(cell, text, bold=True)
+        shade_cell(cell, "E8EEF5")
+    rows = [
+        (
+            "安全通知",
+            "UPDATE: #uOttawa courses + exams officially cancelled... Lockdown still in effect. Stay indoors, stay safe...",
+            "该推文被判定为非谣言，因为它在传播中更像一条机构安全通知。“officially cancelled”“lockdown still in effect”“stay indoors”等表达体现了事务安排和安全指令属性，而不是未证实指控的传播。",
+        ),
+        (
+            "谣言式传播",
+            "Shoot unarmed kid. Conceal evidence. Impose martial law. Smear the victim...",
+            "该推文被判定为谣言，因为它在传播中更像一条对未证实指控的谣言式传播。“conceal evidence”“smear the victim”“martial law”等表述带有强指控和放大传播特征，检索到的相似样本也支持这一判断。",
+        ),
+    ]
+    for row in rows:
+        cells = table.add_row().cells
+        for i, value in enumerate(row):
+            cells[i].width = widths[i]
+            set_cell_text(cells[i], value, size=10)
 
 
 def add_caption(doc: Document, text: str) -> None:
@@ -136,7 +164,6 @@ def build_report() -> None:
     ]
     for line in meta_lines:
         p = doc.add_paragraph()
-        p.alignment = WD_ALIGN_PARAGRAPH.LEFT
         run = p.add_run(line)
         set_font(run, name="宋体", size=11)
         p.paragraph_format.space_after = Pt(2)
@@ -154,14 +181,14 @@ def build_report() -> None:
         "最终方案采用 BERTweet 作为主分类器，对 tweet 进行二分类微调；同时使用 lexical retrieval 与 dense retrieval 从训练集检索相似样本，并通过 RRF 进行混合排序。对于高风险样本，系统再结合证据一致性、官方通知模式、rumor amplification 模式和安全通知模式进行纠偏，最后输出预测标签和解释文本。"
     )
     add_bullet(doc, "主分类器：vinai/bertweet-base，适合 tweet 语域。")
-    add_bullet(doc, "检索证据：TF 风格稀疏检索 + MiniLM 句向量检索。")
+    add_bullet(doc, "检索证据：稀疏检索 + 句向量检索。")
     add_bullet(doc, "融合策略：强一致覆盖、证据冲突复判、官方更新修正、rumor amplification 修正、安全通知修正。")
-    add_bullet(doc, "解释模块：基于最终标签与 top-k 相似样本生成离线解释，保证可复现。")
+    add_bullet(doc, "解释模块：基于文本信号、相似证据和最终标签生成中文判断依据。")
 
     add_heading(doc, "（2）核心代码分析", level=2)
     add_body(
         doc,
-        "系统主流程集中在 src/rumor_system/pipeline.py。dataset.py 负责数据读入与文本规范化；transformer.py 负责 BERTweet 的训练、保存和推理；hybrid.py 将 lexical 与 dense 两路证据进行融合；pipeline.py 中的 fuse_prediction 则实现了检索增强决策逻辑，是本项目提分的关键模块。"
+        "系统主流程集中在 src/rumor_system/pipeline.py。dataset.py 负责数据读入与规范化；transformer.py 负责 BERTweet 的训练、保存和推理；hybrid.py 将 lexical 与 dense 两路证据进行融合；pipeline.py 中的 fuse_prediction 实现了检索增强决策逻辑，是本项目提分的关键模块。"
     )
     add_bullet(doc, "数据层：读取 id、text、label、event，并生成 normalized_text。")
     add_bullet(doc, "模型层：对 BERTweet 进行监督微调，输出 label 与 confidence。")
@@ -195,11 +222,13 @@ def build_report() -> None:
     add_heading(doc, "（4）判断依据的分析（可解释性等）", level=2)
     add_body(
         doc,
-        "解释模块并不让大模型直接决定标签，而是基于最终预测、相似训练样本、top evidence 标签和置信度生成判断依据。这样做的优点是：一方面解释能引用可复查的训练证据，另一方面又能与主模型决策保持一致，避免出现“解释看起来合理、但与真实判别依据脱节”的问题。"
+        "解释模块并不让大模型直接决定标签，而是基于最终预测、相似训练样本、top evidence 标签和置信度生成中文判断依据。新版 explanation 采用“三段式”结构：先说明当前 tweet 在传播中扮演的角色，再指出触发判断的关键短语，最后补充检索证据如何支持或限制该结论。这样既能提高可读性，也能让判断依据更加贴近真实决策过程。"
     )
     add_bullet(doc, "对于 rumor amplification 类文本，系统更关注“未证实指控的传播作用”，而不是表面情绪强弱。")
     add_bullet(doc, "对于官方公告、安全通知、课程取消等文本，系统更关注“通知角色”，而不是事件背景中的 shooting/lockdown 词汇。")
     add_bullet(doc, "对于 headline-style 新闻快讯，系统会优先结合 top evidence 与事件风格判断其是否真正属于 rumor thread。")
+    add_example_table(doc)
+    add_caption(doc, "表1 中文判断依据示例")
 
     add_heading(doc, "3．工作总结")
     add_heading(doc, "（1）收获、心得", level=2)
@@ -211,7 +240,7 @@ def build_report() -> None:
     add_heading(doc, "（2）遇到问题及解决思路", level=2)
     add_body(
         doc,
-        "项目中遇到的主要问题包括：headline false alarm、opinion-like rumor miss、检索证据带偏、以及 LLM 在线接口耗时较大。对应地，我们通过错误样本分型、增加语义缓存、放弃副作用较大的 LLM 改判、保留有效的窄规则纠偏，最终将主线准确率提升到了 90.52%。"
+        "项目中遇到的主要问题包括：headline false alarm、opinion-like rumor miss、检索证据带偏，以及在线接口推理较慢。对应地，我们通过错误样本分型、增加缓存、放弃副作用较大的 LLM 改判、保留有效的窄规则纠偏，最终将主线准确率提升到了 90.52%。"
     )
 
     add_heading(doc, "4．课程建议")
