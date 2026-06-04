@@ -2,6 +2,15 @@ project:
   name: explainable-rumor-detection
   seed: 42
 
+event_name_map:
+  0: gurlitt
+  1: ferguson
+  2: essien_ebola
+  3: prince_toronto
+  4: germanwings
+  5: sydneysiege
+  6: ottawashooting
+
 data:
   train_path: rumer2026/train.csv
   val_path: rumer2026/val.csv
@@ -12,14 +21,14 @@ data:
 
 model:
   classifier_type: transformer
-  classifier_name: microsoft/deberta-v3-base
+  classifier_name: vinai/bertweet-base
   fallback_classifier_type: retrieval_vote
-  max_length: 128
+  max_length: 160
   num_labels: 2
   decision_threshold: 0.5
-  checkpoint_dir: outputs/checkpoints/deberta_v3_base
-  batch_size: 12
-  eval_batch_size: 24
+  checkpoint_dir: outputs/checkpoints/bertweet_event
+  batch_size: 16
+  eval_batch_size: 32
   learning_rate: 2.0e-5
   weight_decay: 0.01
   num_epochs: 3
@@ -29,6 +38,7 @@ model:
   use_class_weights: true
   device: auto
   force_retrain: false
+  use_event_prefix: true
 
 retrieval:
   enabled: true
@@ -58,8 +68,22 @@ retrieval:
   evidence_conflict_raw_ratio_threshold: 0.60
   evidence_conflict_top_score_threshold: 0.0140
   evidence_conflict_top_dense_threshold: 0.75
+  conflict_aware_rerank_enabled: false
+  conflict_aware_consensus_bonus: 0.25
+  conflict_aware_cross_source_bonus: 0.002
+  conflict_aware_dense_bonus: 0.004
+  conflict_aware_lexical_bonus: 0.002
+  conflict_aware_override_enabled: false
+  conflict_aware_min_support_count: 3
+  conflict_aware_vote_ratio_threshold: 0.60
+  conflict_aware_weight_gap_threshold: 0.10
+  conflict_aware_top_score_max: 0.030
+  conflict_aware_max_base_confidence: 0.98
   official_update_resolver_enabled: true
   official_update_max_confidence: 0.95
+  rumor_amplification_resolver_enabled: true
+  rumor_amplification_max_confidence: 0.975
+  rumor_amplification_top_score_threshold: 0.0145
   normalize_urls: true
   normalize_users: true
   normalize_hashtags: false
@@ -72,9 +96,9 @@ explanation:
   include_confidence: true
 
 output:
-  train_summary_path: outputs/train_summary.json
-  val_predictions_path: outputs/val_predictions.csv
-  val_metrics_path: outputs/val_metrics.json
+  train_summary_path: outputs/train_summary_event.json
+  val_predictions_path: outputs/val_predictions_event.csv
+  val_metrics_path: outputs/val_metrics_event.json
 
 runtime:
   save_prediction_evidence: true

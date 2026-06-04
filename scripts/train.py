@@ -34,9 +34,9 @@ def main() -> None:
         force_retrain = bool(config.model.get("force_retrain", False)) or args.force_retrain
         if force_retrain or not classifier.is_trained():
             history = classifier.fit(
-                train_texts=artifacts.train_df["text"].tolist(),
+                train_texts=artifacts.train_df["model_input_text"].tolist(),
                 train_labels=artifacts.train_df["label"].astype(int).tolist(),
-                val_texts=artifacts.val_df["text"].tolist(),
+                val_texts=artifacts.val_df["model_input_text"].tolist(),
                 val_labels=artifacts.val_df["label"].astype(int).tolist(),
             )
             summary["training_history"] = history

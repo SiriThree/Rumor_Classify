@@ -12,14 +12,14 @@ data:
 
 model:
   classifier_type: transformer
-  classifier_name: microsoft/deberta-v3-base
+  classifier_name: vinai/bertweet-base
   fallback_classifier_type: retrieval_vote
   max_length: 128
   num_labels: 2
   decision_threshold: 0.5
-  checkpoint_dir: outputs/checkpoints/deberta_v3_base
-  batch_size: 12
-  eval_batch_size: 24
+  checkpoint_dir: outputs/checkpoints/bertweet
+  batch_size: 16
+  eval_batch_size: 32
   learning_rate: 2.0e-5
   weight_decay: 0.01
   num_epochs: 3
@@ -60,6 +60,9 @@ retrieval:
   evidence_conflict_top_dense_threshold: 0.75
   official_update_resolver_enabled: true
   official_update_max_confidence: 0.95
+  llm_semantic_top_score_threshold: 0.0135
+  llm_semantic_non_rumor_max_confidence: 0.999
+  llm_semantic_rumor_max_confidence: 0.999
   normalize_urls: true
   normalize_users: true
   normalize_hashtags: false
@@ -78,9 +81,12 @@ output:
 
 runtime:
   save_prediction_evidence: true
-  semantic_analyzer_enabled: false
-  semantic_analyzer_mode: offline_rule
+  semantic_analyzer_enabled: true
+  semantic_analyzer_mode: sjtu_api
   semantic_analyzer_model_name: ""
+  semantic_analyzer_cache_path: outputs/cache/semantic_analyzer_cache.jsonl
   semantic_analyzer_hard_case_only: true
-  semantic_analyzer_hard_conf_low: 0.70
+  semantic_analyzer_hard_conf_low: 0.60
   semantic_analyzer_hard_conf_high: 0.995
+  progress_enabled: true
+  progress_every: 10

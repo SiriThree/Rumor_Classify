@@ -8,6 +8,7 @@ import requests
 from rumor_system.explain.prompting import build_explanation_prompt
 from rumor_system.models.base import Prediction
 from rumor_system.retrieval.lexical import EvidenceItem
+from rumor_system.utils.env import load_local_env
 
 
 @dataclass
@@ -54,6 +55,7 @@ class ExplanationGenerator:
         prediction: Prediction,
         evidence: list[EvidenceItem],
     ) -> str:
+        load_local_env()
         api_base = os.getenv("SJTU_API_BASE_URL", "").rstrip("/")
         api_key = os.getenv("SJTU_API_KEY", "")
         model_name = self.model_name or os.getenv("SJTU_API_MODEL", "")
@@ -77,4 +79,3 @@ class ExplanationGenerator:
         response.raise_for_status()
         payload = response.json()
         return payload["choices"][0]["message"]["content"].strip()
-

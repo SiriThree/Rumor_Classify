@@ -58,8 +58,26 @@ retrieval:
   evidence_conflict_raw_ratio_threshold: 0.60
   evidence_conflict_top_score_threshold: 0.0140
   evidence_conflict_top_dense_threshold: 0.75
+  conflict_aware_rerank_enabled: false
+  conflict_aware_consensus_bonus: 0.25
+  conflict_aware_cross_source_bonus: 0.002
+  conflict_aware_dense_bonus: 0.004
+  conflict_aware_lexical_bonus: 0.002
+  conflict_aware_override_enabled: false
+  conflict_aware_min_support_count: 3
+  conflict_aware_vote_ratio_threshold: 0.60
+  conflict_aware_weight_gap_threshold: 0.10
+  conflict_aware_top_score_max: 0.030
+  conflict_aware_max_base_confidence: 0.98
   official_update_resolver_enabled: true
   official_update_max_confidence: 0.95
+  safety_notice_resolver_enabled: true
+  safety_notice_max_confidence: 0.90
+  live_coverage_resolver_enabled: true
+  live_coverage_max_confidence: 0.80
+  rumor_amplification_resolver_enabled: true
+  rumor_amplification_max_confidence: 0.975
+  rumor_amplification_top_score_threshold: 0.0145
   normalize_urls: true
   normalize_users: true
   normalize_hashtags: false
@@ -78,3 +96,9 @@ output:
 
 runtime:
   save_prediction_evidence: true
+  semantic_analyzer_enabled: false
+  semantic_analyzer_mode: offline_rule
+  semantic_analyzer_model_name: ""
+  semantic_analyzer_hard_case_only: true
+  semantic_analyzer_hard_conf_low: 0.70
+  semantic_analyzer_hard_conf_high: 0.995

@@ -78,3 +78,9 @@ output:
 
 runtime:
   save_prediction_evidence: true
+  semantic_analyzer_enabled: false
+  semantic_analyzer_mode: offline_rule
+  semantic_analyzer_model_name: ""
+  semantic_analyzer_hard_case_only: true
+  semantic_analyzer_hard_conf_low: 0.70
+  semantic_analyzer_hard_conf_high: 0.995

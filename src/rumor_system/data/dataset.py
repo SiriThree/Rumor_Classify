@@ -8,6 +8,17 @@ import pandas as pd
 from rumor_system.data.preprocess import normalize_tweet
 
 
+DEFAULT_EVENT_NAME_MAP = {
+    0: "gurlitt",
+    1: "ferguson",
+    2: "essien_ebola",
+    3: "prince_toronto",
+    4: "germanwings",
+    5: "sydneysiege",
+    6: "ottawashooting",
+}
+
+
 @dataclass
 class TweetRecord:
     tweet_id: str
@@ -47,3 +58,23 @@ def add_normalized_text(df: pd.DataFrame, retrieval_cfg: dict) -> pd.DataFrame:
     )
     return out
 
+
+def add_model_input_text(df: pd.DataFrame, raw_config: dict) -> pd.DataFrame:
+    out = df.copy()
+    model_cfg = raw_config.get("model", {})
+    if not model_cfg.get("use_event_prefix", False):
+        out["model_input_text"] = out["text"]
+        return out
+
+    event_name_map = {
+        int(key): str(value)
+        for key, value in raw_config.get("event_name_map", DEFAULT_EVENT_NAME_MAP).items()
+    }
+
+    def format_with_event(row: pd.Series) -> str:
+        event_id = int(row["event"])
+        event_name = event_name_map.get(event_id, f"event_{event_id}")
+        return f"[event: {event_name}] {row['text']}"
+
+    out["model_input_text"] = out.apply(format_with_event, axis=1)
+    return out
